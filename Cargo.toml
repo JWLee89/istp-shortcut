@@ -1,6 +1,34 @@
 [package]
-name = "istp-shortcut"
+name = "lazy-shortcut"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# For handling dot-env variables
+lazy_static = "1.4.0"
+# For storing commands in a local database.
+sqlx = { version = "0.8", features = [ "runtime-tokio-rustls", "sqlite", "migrate"] }
+# "string" is needed to work with default_value using std::path::PathBuf
+clap = { version = "4.5.20", features = ["derive", "cargo", "string"] }
+# For asnychronous operations e.g. database
+tokio = { version = "1", features = ["full"] }
+# Error handling
+thiserror = "1.0.58"
+color-eyre = "0.6.3"
+# Provides the core functionality for creating and managing spans and events.
+# It allows your application to produce trace data that describes the execution flow.
+tracing = "0.1.40"
+# Configures how the trace data is collected, processed, and exported.
+# It allows you to define subscribers that record the trace data to
+# various outputs, making it useful for monitoring and debugging.
+tracing-subscriber = { version = "0.3.18", features = ["registry", "env-filter"] }
+tracing-error = "0.2.0"
+# For creating asynchronous functions in traits
+async-trait = "0.1.83"
+
+# Used only during development such as
+# running tests, building documentation, etc.
+[dev-dependencies]
+test-case = "*"
+# Create temporary directories for testing
+tempfile = "3"
