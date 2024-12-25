@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use crate::common::constants::app::DEFAULT_DB_PATH;
+use crate::common::constants::app::DEFAULT_DB_NAME;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -29,20 +29,24 @@ pub enum Commands {
         name: Option<String>,
     },
     #[clap(visible_alias("sv"))]
-    Save {
+    Add {
         /// The name of the command to save
         name: String,
         /// The command to save
-        command: String,
-        /// Will disable sanity checks. Use at your own risk.
-        /// This will bypass sanity checks that prevent injection.
-        disable_checks: Option<bool>,
+        statement: String,
+        // /// Will disable sanity checks. Use at your own risk.
+        // /// This will bypass sanity checks that prevent injection.
+        // disable_checks: Option<bool>,
+        description: Option<String>,
     },
+    Update {},
 }
 
 fn get_default_db_path() -> PathBuf {
     let mut default_path = PathBuf::new();
-    default_path.push(DEFAULT_DB_PATH);
+    let current_working_directory = std::env::current_dir().unwrap();
+    default_path.push(current_working_directory);
+    default_path.push(DEFAULT_DB_NAME);
     default_path
 }
 
@@ -55,6 +59,13 @@ mod test {
     #[test]
     fn test_get_default_path() {
         let path = get_default_db_path();
-        assert_eq!(path.as_os_str(), DEFAULT_DB_PATH);
+        let actual = path.as_os_str().to_str().unwrap();
+        let current_working_dir = std::env::current_dir().unwrap();
+        let expected = format!(
+            "{}/{}",
+            current_working_dir.as_os_str().to_str().unwrap(),
+            DEFAULT_DB_NAME
+        );
+        assert_eq!(actual, expected);
     }
 }
