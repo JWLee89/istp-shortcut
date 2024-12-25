@@ -8,6 +8,12 @@ pub fn is_existing_file(path: &str) -> bool {
     p.exists() && p.is_file()
 }
 
+// TODO: Allow us to handle different database errors differently
+pub enum DatabaseError {
+    AlreadyExists,
+    InvalidPath, // Path does not point to database. E.g. empty string, wrong path.
+}
+
 /// Create the database if it does not exist.
 /// The string must not be empty. Otherwise, will raise an error.
 pub async fn create_db_if_not_exists(db_path: &str) -> Result<()> {

@@ -3,11 +3,18 @@ name = "lazy-shortcut"
 version = "0.1.0"
 edition = "2021"
 
+# To avoid the need for the database to be accessible during compilation,
+# you can use SQLx's offline mode. This involves generating a sqlx-data.json
+# file ahead of time, which the macros use to
+# verify queries without connecting to the database at compile time.
+[package.metadata.sqlx]
+offline = true
+
 [dependencies]
 # For handling dot-env variables
 lazy_static = "1.4.0"
 # For storing commands in a local database.
-sqlx = { version = "0.8", features = [ "runtime-tokio-rustls", "sqlite", "migrate"] }
+sqlx = { version = "0.8", features = [ "runtime-tokio-rustls", "sqlite", "migrate", "chrono"] }
 # "string" is needed to work with default_value using std::path::PathBuf
 clap = { version = "4.5.20", features = ["derive", "cargo", "string"] }
 # For asnychronous operations e.g. database
