@@ -14,7 +14,7 @@ offline = true
 # For handling dot-env variables
 lazy_static = "1.4.0"
 # For storing commands in a local database.
-sqlx = { version = "0.8", features = [ "runtime-tokio-rustls", "sqlite", "migrate", "chrono"] }
+sqlx = { version = "0.8", features = [ "runtime-tokio-rustls", "sqlite", "migrate", "chrono", "macros"] }
 # "string" is needed to work with default_value using std::path::PathBuf
 clap = { version = "4.5.20", features = ["derive", "cargo", "string"] }
 # For asnychronous operations e.g. database

@@ -94,7 +94,7 @@ impl CommandBuilder {
             // newly build command object
             .to_owned();
         let statement = self
-            .name
+            .statement
             .as_ref()
             .ok_or_eyre(
                 "statement is not defined.
@@ -127,4 +127,53 @@ pub enum CommandError {
 pub struct CommandResult {
     // Store the result from executing the command.
     // result: Result<String, CommandError>,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use test_case::test_case;
+
+    /// Test the command builder
+    #[test_case("list", "ls -l", Some("List items in directory"))]
+    #[test_case("save", "save something", None)]
+    fn test_command_builder(name: &str, statement: &str, description: Option<&str>) {
+        let mut builder = CommandBuilder::new()
+            .name(name.to_string())
+            .statement(statement.to_string());
+
+        // Handle optional description
+        if let Some(desc) = description {
+            builder = builder.description(desc.to_string());
+        }
+        let command = builder.build().unwrap();
+
+        // TODO: write a simple macro to handle something like this
+        assert_eq!(command.name.as_str(), name);
+        assert_eq!(command.statement.as_str(), statement);
+
+        // Handle testing for optional
+        let actual: Option<&str> = command.description.as_deref();
+        assert_eq!(actual, description);
+    }
+
+    #[test_case(None, None)]
+    #[test_case(Some("teemo"), None)]
+    #[test_case(None, Some(""))]
+    fn test_command_builder_failure(name: Option<&str>, statement: Option<&str>) {
+        let mut builder = CommandBuilder::new();
+        if let Some(n) = name {
+            builder = builder.name(n.to_string());
+        }
+        if let Some(s) = statement {
+            builder = builder.statement(s.to_string());
+        }
+        let result = builder.build();
+        if let Ok(_) = result {
+            panic!(
+                "CommandBuilder.build() failed. Check fn build(). Result object: {:?}",
+                result
+            )
+        }
+    }
 }

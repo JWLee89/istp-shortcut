@@ -28,6 +28,12 @@ pub enum Commands {
         /// Search by name
         name: Option<String>,
     },
+    #[clap(visible_alias("ex"))]
+    Exec {
+        /// Name of the command to execute.
+        /// If it does not exist, it will error out.
+        name: String,
+    },
     #[clap(visible_alias("sv"))]
     Add {
         /// The name of the command to save

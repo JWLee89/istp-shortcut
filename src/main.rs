@@ -9,6 +9,7 @@ use lazy_shortcut::{
         sqlite::{command::SqliteCommandStore, db::create_db_if_not_exists},
     },
 };
+use tracing::debug;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -18,32 +19,45 @@ async fn main() -> Result<()> {
     // Parse CLI outputs
     let cli = Cli::parse();
     // Initialize database
-    // TODO: Create specific errors to handle case where DB cannot be overwritten
     if let Err(e) = create_db_if_not_exists(&cli.db_path).await {
-        println!(
+        debug!(
             "Did not create new database. Root cause: {}",
             e.root_cause()
         );
     }
     let url = format!("sqlite://{}", &cli.db_path);
-    println!("CLI DB path: {}", cli.db_path);
-    println!("URL: {}", url);
+    debug!("CLI DB path: {}", cli.db_path);
+    debug!("URL: {}", url);
     // Connect to DB
-    let command_store = SqliteCommandStore::from_str(&url).await?;
+    let command_store: SqliteCommandStore = SqliteCommandStore::from_str(&url).await?;
 
     // You can check for the existence of subcommands, and if found use their
     // matches just as you would the top level cmd
     match &cli.command {
+        Some(Commands::Exec { name }) => {
+            debug!("`exec` was used. Attempting to execute: {:?}", name);
+            let command = command_store.get(name).await?;
+            println!("Command found: {:?}", command);
+        },
         Some(Commands::List { name }) => {
-            println!("'myapp add' was used, name is: {:?}", name);
+            debug!("'myapp add' was used, name is: {:?}", name);
             match name {
                 Some(command_name) => {
-                    println!("command: {command_name}")
+                    // Query database
+                    let command = command_store.get(command_name).await;
+                    if let Ok(cmd) = command {
+                        println!("command: {command_name} found. {:?}", cmd);
+                    } else {
+                        println!("Command: {command_name} not found");
+                    }
                 },
                 None => {
                     let commands = command_store.get_all().await?;
                     for command in commands {
-                        println!("Command: {}", command.id);
+                        println!(
+                            "Command: {}, Statement: {}",
+                            command.name, command.statement
+                        );
                     }
                 },
             }
@@ -54,7 +68,7 @@ async fn main() -> Result<()> {
             statement,
             description,
         }) => {
-            println!(
+            debug!(
                 "Save was used: name is: {:?}. Command to execute is: {:?}",
                 name, statement
             );
@@ -62,7 +76,8 @@ async fn main() -> Result<()> {
                 .name(name.to_string())
                 .statement(statement.to_string());
 
-            // TODO: get rid of clone later
+            // Clone here is only for one command and should not be too costly
+            // so we will keep it for now.
             if let Some(desc) = description {
                 builder.clone().description(desc.to_owned());
             }
@@ -72,10 +87,10 @@ async fn main() -> Result<()> {
             command_store.create(&command).await?;
         },
         Some(Commands::Update {}) => {
-            println!("Update was called");
+            debug!("Update was called");
         },
         None => {
-            println!("Default subcommand");
+            debug!("Default subcommand");
         },
     }
     Ok(())
